@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = "SMWebView"
-  s.version          = "0.1"
+  s.version          = "0.2"
   s.summary          = "SMWebView is a delightful, lightweight Swift wrapper around UIWebView that lets you harness the power of Closures and Chaining. "
 
   s.description      = <<-DESC
