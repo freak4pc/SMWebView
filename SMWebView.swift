@@ -11,7 +11,7 @@ import UIKit
 public class SMWebView : UIWebView, UIWebViewDelegate{
     //MARK: Typealiasing for Closure Types
     public typealias SMWebViewClosure                                       = (webView:SMWebView) -> ()
-    public typealias SMWebViewFailClosure                                   = (webView:SMWebView, error: NSError) -> ()
+    public typealias SMWebViewFailClosure                                   = (webView:SMWebView, error: NSError?) -> ()
     public typealias SMWebViewShouldLoadClosure                             = (webView:SMWebView, request: NSURLRequest, navigationType: UIWebViewNavigationType) -> (Bool)
     
     //MARK: Internal storage for Closures
@@ -27,7 +27,7 @@ public class SMWebView : UIWebView, UIWebViewDelegate{
         self.delegate  = self
     }
     
-    required public init(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         self.delegate  = self
     }
@@ -83,7 +83,7 @@ public class SMWebView : UIWebView, UIWebViewDelegate{
     }
     
     //MARK: UIWebView Delegate & Closure Handling
-    public func webView(webView: UIWebView, didFailLoadWithError error: NSError) {
+    public func webView(webView: UIWebView, didFailLoadWithError error: NSError?) {
         self.__didFailLoadingHandler?(webView: self, error: error)
     }
     
