@@ -8,102 +8,110 @@
 import Foundation
 import UIKit
 
-public class SMWebView : UIWebView, UIWebViewDelegate{
+open class SMWebView: UIWebView, UIWebViewDelegate{
     //MARK: Typealiasing for Closure Types
-    public typealias SMWebViewClosure                                       = (webView:SMWebView) -> ()
-    public typealias SMWebViewFailClosure                                   = (webView:SMWebView, error: NSError?) -> ()
-    public typealias SMWebViewShouldLoadClosure                             = (webView:SMWebView, request: NSURLRequest, navigationType: UIWebViewNavigationType) -> (Bool)
+    public typealias SMWebViewClosure                                       = (_ webView :SMWebView) -> ()
+    public typealias SMWebViewFailClosure                                   = (_ webView :SMWebView, _ error: Error?) -> ()
+    public typealias SMWebViewShouldLoadClosure                             = (_ webView :SMWebView, _ request: URLRequest, _ navigationType: UIWebViewNavigationType) -> (Bool)
     
     //MARK: Internal storage for Closures
-    internal var __didStartLoadingHandler:SMWebViewClosure?                 = nil
-    internal var __didFinishLoadingHandler:SMWebViewClosure?                = nil
-    internal var __didCompleteLoadingHandler:SMWebViewClosure?              = nil
-    internal var __didFailLoadingHandler:SMWebViewFailClosure?              = nil
-    internal var __shouldStartLoadingHandler:SMWebViewShouldLoadClosure?    = nil
+    fileprivate var didStartLoadingHandler: SMWebViewClosure?               = nil
+    fileprivate var didFinishLoadingHandler: SMWebViewClosure?              = nil
+    fileprivate var didCompleteLoadingHandler: SMWebViewClosure?            = nil
+    fileprivate var didFailLoadingHandler: SMWebViewFailClosure?            = nil
+    fileprivate var shouldStartLoadingHandler: SMWebViewShouldLoadClosure?  = nil
     
     //MARK: Initializers
-    override public init(frame: CGRect) {
+    override init(frame: CGRect) {
         super.init(frame: frame)
-        self.delegate  = self
+        delegate  = self
     }
     
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
-        self.delegate  = self
+        delegate  = self
     }
     
     // URL/String loaders with Chaining-support
-    public class func loadURL(URL: NSURL) -> SMWebView{
+    public class func loadURL(_ URL: URL) -> SMWebView {
         let wv = SMWebView()
-        wv.loadRequest(NSURLRequest(URL: URL))
+        wv.loadRequest(URLRequest(url: URL))
         return wv
     }
-    
-    public class func loadHTML(string: String!, baseURL: NSURL!) -> SMWebView{
+
+    public class func loadHTML(_ string: String, baseURL: URL) -> SMWebView {
         let wv = SMWebView()
         wv.loadHTMLString(string, baseURL: baseURL)
         return wv
     }
-    
-    public func loadURL(URL: NSURL) -> SMWebView{
-        self.loadRequest(NSURLRequest(URL: URL))
+
+    @discardableResult
+    public func loadURL(_ URL: URL) -> SMWebView {
+        loadRequest(URLRequest(url: URL))
         return self
     }
-    
-    public func loadHTML(string: String!, baseURL: NSURL!) -> SMWebView{
-        self.loadHTMLString(string, baseURL: baseURL)
+
+    @discardableResult
+    public func loadHTML(_ string: String, baseURL: URL) -> SMWebView {
+        loadHTMLString(string, baseURL: baseURL)
         return self
     }
-    
+
     //MARK: Closure methods
-    public func didStartLoading(handler: SMWebViewClosure) -> SMWebView{
-        self.__didStartLoadingHandler       = handler
+    @discardableResult
+    public func didStartLoading(handler: @escaping SMWebViewClosure) -> SMWebView {
+        didStartLoadingHandler       = handler
         
         return self
     }
-    
-    public func didFinishLoading(handler: SMWebViewClosure) -> SMWebView{
-        self.__didFinishLoadingHandler      = handler
+
+    @discardableResult
+    public func didFinishLoading(handler: @escaping SMWebViewClosure) -> SMWebView {
+        didFinishLoadingHandler      = handler
         return self
     }
-    
-    public func didFailLoading(handler: SMWebViewFailClosure) -> SMWebView{
-        self.__didFailLoadingHandler        = handler
+
+    @discardableResult
+    public func didFailLoading(handler: @escaping SMWebViewFailClosure) -> SMWebView {
+        didFailLoadingHandler        = handler
         return self
     }
-    
-    public func didCompleteLoading(handler: SMWebViewClosure) -> SMWebView{
-        self.__didCompleteLoadingHandler    = handler
+
+    @discardableResult
+    public func didCompleteLoading(handler: @escaping SMWebViewClosure) -> SMWebView {
+        didCompleteLoadingHandler    = handler
         return self
     }
-    
-    public func shouldStartLoading(handler: SMWebViewShouldLoadClosure) -> SMWebView{
-        self.__shouldStartLoadingHandler    = handler
+
+    @discardableResult
+    public func shouldStartLoading(handler: @escaping SMWebViewShouldLoadClosure) -> SMWebView {
+        shouldStartLoadingHandler    = handler
         return self
     }
     
     //MARK: UIWebView Delegate & Closure Handling
-    public func webView(webView: UIWebView, didFailLoadWithError error: NSError?) {
-        self.__didFailLoadingHandler?(webView: self, error: error)
+    public func webView(_ webView: UIWebView, didFailLoadWithError error: Error) {
+        didFailLoadingHandler?(self, error)
     }
-    
-    public func webView(webView: UIWebView, shouldStartLoadWithRequest request: NSURLRequest, navigationType: UIWebViewNavigationType) -> Bool {
-        if self.__shouldStartLoadingHandler != nil {
-            return self.__shouldStartLoadingHandler!(webView: self, request: request, navigationType: navigationType)
+
+    public func webView(_ webView: UIWebView, shouldStartLoadWith request: URLRequest, navigationType: UIWebViewNavigationType) -> Bool {
+        guard let handler = shouldStartLoadingHandler,
+              shouldStartLoadingHandler != nil else {
+            return true
         }
-        
-        return true
+
+        return handler(self, request, navigationType)
     }
-    
-    public func webViewDidStartLoad(webView: UIWebView) {
-        self.__didStartLoadingHandler?(webView: self)
+
+    public func webViewDidStartLoad(_ webView: UIWebView) {
+        didStartLoadingHandler?(self)
     }
-    
-    public func webViewDidFinishLoad(webView: UIWebView) {
-        self.__didFinishLoadingHandler?(webView: self)
-        
-        if !webView.loading {
-            self.__didCompleteLoadingHandler?(webView: self)
+
+    public func webViewDidFinishLoad(_ webView: UIWebView) {
+        didFinishLoadingHandler?(self)
+
+        if !webView.isLoading {
+            didCompleteLoadingHandler?(self)
         }
     }
 }
